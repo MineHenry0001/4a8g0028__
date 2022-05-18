@@ -10,8 +10,13 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
-using namespace cv;
-using namespace std;
+
+#include <QWidget>
+#include <QTimer>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 class qt : public QMainWindow
 {
@@ -19,11 +24,18 @@ class qt : public QMainWindow
 
 public:
     qt(QWidget *parent = Q_NULLPTR);
+    QImage MatImageToQt(const cv::Mat& src);
 
 private:
     Ui::qtClass ui;
     QString filename;
 
+    
+    cv::Mat image;
+    cv::VideoCapture m_videoCapture;
+    QTimer* m_timer;
+   
+    
 
 private slots:
    
@@ -41,8 +53,13 @@ private slots:
     void Sobel(void);
     void Rotate(void);
     void Pan(void);
+    void affine_pan(void);
     void Mouse_Pressed();
-    
+    void contours();
+    void readFarme();
+    void on_openCamera_clicked();
+    void on_closeCamera_clicked();
+
 };
 
 
