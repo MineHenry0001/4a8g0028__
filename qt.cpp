@@ -300,9 +300,9 @@ void qt::readFarme()
 
 void qt::on_openCamera_clicked()
 {
-	//开启定时器， 33ms刷新一次
+	
 	m_videoCapture.open(0);
-	m_timer->start(33);
+	m_timer->start(33);//每33ms刷新一次
 }
 
 void qt::on_closeCamera_clicked()

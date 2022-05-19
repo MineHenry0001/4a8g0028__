@@ -169,7 +169,7 @@
    <widget class="MyQLabel" name="Cameralabel">
     <property name="geometry">
      <rect>
-      <x>720</x>
+      <x>730</x>
       <y>50</y>
       <width>471</width>
       <height>391</height>
@@ -397,6 +397,9 @@
    <class>MyQLabel</class>
    <extends>QLabel</extends>
    <header location="global">myqlabel.h</header>
+   <slots>
+    <slot>contours()</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources>

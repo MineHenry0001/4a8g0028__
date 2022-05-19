@@ -55,7 +55,7 @@ private slots:
     void Pan(void);
     void affine_pan(void);
     void Mouse_Pressed();
-    void contours();
+    //void contours();
     void readFarme();
     void on_openCamera_clicked();
     void on_closeCamera_clicked();
