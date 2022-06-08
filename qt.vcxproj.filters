@@ -48,8 +48,10 @@
     <QtMoc Include="MyQLabel.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="CameraGet.h">
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CameraGet.h">
       <Filter>Header Files</Filter>
-    </QtMoc>
+    </ClInclude>
   </ItemGroup>
 </Project>

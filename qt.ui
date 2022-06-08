@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1245</width>
-    <height>924</height>
+    <width>1251</width>
+    <height>863</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="MyQLabel" name="a_image">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>70</y>
-      <width>471</width>
-      <height>391</height>
+      <x>700</x>
+      <y>0</y>
+      <width>491</width>
+      <height>771</height>
      </rect>
     </property>
     <property name="text">
@@ -30,8 +30,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>520</y>
+      <x>180</x>
+      <y>200</y>
       <width>161</width>
       <height>131</height>
      </rect>
@@ -130,8 +130,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>480</y>
+      <x>180</x>
+      <y>160</y>
       <width>168</width>
       <height>24</height>
      </rect>
@@ -166,24 +166,11 @@
      <string/>
     </property>
    </widget>
-   <widget class="MyQLabel" name="Cameralabel">
-    <property name="geometry">
-     <rect>
-      <x>730</x>
-      <y>50</y>
-      <width>471</width>
-      <height>391</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
    <widget class="QPushButton" name="OpenP">
     <property name="geometry">
      <rect>
-      <x>690</x>
-      <y>490</y>
+      <x>380</x>
+      <y>160</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -197,29 +184,11 @@
      <string>打開相機</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="PictureP">
-    <property name="geometry">
-     <rect>
-      <x>870</x>
-      <y>490</y>
-      <width>101</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>拍照</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="CloseP">
     <property name="geometry">
      <rect>
-      <x>1040</x>
-      <y>490</y>
+      <x>380</x>
+      <y>210</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -230,7 +199,7 @@
      </font>
     </property>
     <property name="text">
-     <string>關閉相機</string>
+     <string>開啟Mask</string>
     </property>
    </widget>
   </widget>
@@ -239,7 +208,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1245</width>
+     <width>1251</width>
      <height>21</height>
     </rect>
    </property>
@@ -790,6 +759,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>CloseP</sender>
+   <signal>clicked()</signal>
+   <receiver>qtClass</receiver>
+   <slot>on_openMask_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1090</x>
+     <y>565</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>622</x>
+     <y>461</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>trigger()</slot>
@@ -810,5 +795,6 @@
   <slot>Pan()</slot>
   <slot>affine_pan()</slot>
   <slot>contours()</slot>
+  <slot>on_openMask_clicked()</slot>
  </slots>
 </ui>

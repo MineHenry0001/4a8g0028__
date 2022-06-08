@@ -22,8 +22,17 @@
 #include <MyQLabel.h>
 #include "ui_qt.h"
 
-
+cv::Mat img;
 //QMessageBox::warning(NULL, "Y", "YUYUY");
+std::vector<std::vector<int>> newPoints;
+//要检测的颜色（HSV模式）（顺序为hmin smin vmin hmax smax vmax）(通过ColorPicker.cpp手动调出范围)
+//vector<vector<int>> myColors{ {21,105,125,55,230,230} };//黄色塑料壳固体胶的颜色
+//140,65,110,195,150,195比较宽松的红色
+std::vector<std::vector<int>> myColors{ {130,55,85,205,160,210} }; //更加宽松的红色
+//要输出的颜色
+std::vector<cv::Scalar> myColorValues{ {0,0,255} };
+
+
 
 qt::qt(QWidget* parent)
 	: QMainWindow(parent)
@@ -37,6 +46,7 @@ qt::qt(QWidget* parent)
 	//connect(ui.PictureP, SIGNAL(clicked()), this, SLOT(takingPictures()));
 	connect(ui.CloseP, SIGNAL(clicked()), this, SLOT(on_closeCamera_clicked()));
 
+	
 
 }
 
@@ -109,7 +119,7 @@ void qt::ROI()
 
 	cv::Mat m_roi = logo(cv::Rect(x, y, w, h)); 
 
-	imshow("ROI", m_roi);
+		imshow("ROI", m_roi);
 }
 
 void qt::HIST()
@@ -191,10 +201,6 @@ void qt::GLOW()
 	imshow("Gauss", img);
 }
 
-void qt::GHIGH()
-{
-
-}	
 
 void qt::Matlab()//均值
 {
@@ -290,30 +296,139 @@ void qt::Mouse_Pressed()
 	ui.a_label->setText(QString("X = %1, Y = %2").arg(ui.a_image->a).arg(ui.a_image->b));
 }		
 
+cv::Point getContours(cv::Mat imgDil) {
 
-void qt::readFarme()
-{
-	m_videoCapture.read(image);
-	QImage imag = MatImageToQt(image);
-	ui.Cameralabel->setPixmap(QPixmap::fromImage(imag));
+
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+
+	findContours(imgDil, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+	
+	std::vector<std::vector<cv::Point>> conPoly(contours.size());
+	std::vector<cv::Rect> boundRect(contours.size());
+
+	cv::Point myPoint(0, 0);//筆尖座標
+	int max = -1;//儲存面積最大的區域下標
+	for (int i = 0; i < contours.size(); i++)
+	{
+		if (cv::contourArea(contours[i])>0)
+		{	
+			//繪製邊緣
+			cout << conPoly[i].size() << endl;
+			if (max != -1)
+			{
+				if (cv::contourArea(contours[i]) > cv::contourArea(contours[max]))max = i;
+			}
+			else max = i;
+		}
+	}
+	if (max != -1)
+	{
+		//绘制边缘
+		float peri = arcLength(contours[max], true);
+		approxPolyDP(contours[max], conPoly[max], 0.01 * peri, true);
+		drawContours(img, conPoly, max, cv::Scalar(255, 0, 255), 3);
+		//绘制矩形框
+		boundRect[max] = boundingRect(conPoly[max]);
+		rectangle(img, boundRect[max].tl(), boundRect[max].br(), cv::Scalar(0, 255, 0));
+		//获取面积最大的区域（视为笔尖）的坐标
+		myPoint.x = boundRect[max].x + boundRect[max].width / 2;
+		myPoint.y = boundRect[max].y;
+	}
+	return myPoint;
 }
+
+std::vector<std::vector<int>> findColor(cv::Mat img)
+{
+	cv::Mat imgHSV;
+	cvtColor(img, imgHSV, cv::COLOR_BGR2HLS);
+	int max = 0;
+	for (int i = 0; i < myColors.size(); i++)
+	{
+		cv::Scalar lower(myColors[i][0], myColors[i][1], myColors[i][2]);
+		cv::Scalar upper(myColors[i][3], myColors[i][4], myColors[i][5]);
+		cv::Mat mask;
+		inRange(imgHSV, lower, upper, mask);//篩選出特定顏色的區域
+		cv::Point myPoint = getContours(mask);
+		if (myPoint.x != 0&&myPoint.y!=0) 
+		{
+			newPoints.push_back({ myPoint.x,myPoint.y,i });
+		}
+	}
+	return newPoints;
+}
+cv::Point prepoint;
+
+
+void qt::drawOnCanvas(std::vector<std::vector<int>> newPoints, std::vector<cv::Scalar> myColorValues)
+{
+	for (int i = 0; i < newPoints.size(); i++)
+	{
+		circle(img, cv::Point(newPoints[i][0], newPoints[i][1]), 5, myColorValues[newPoints[i][2]], cv::FILLED);
+	}
+}
+
+
 
 void qt::on_openCamera_clicked()
 {
-	
+
+
 	m_videoCapture.open(0);
-	m_timer->start(33);//每33ms刷新一次
+	while (true)
+	{
+		m_videoCapture.read(img);
+		newPoints = findColor(img);
+		drawOnCanvas(newPoints, myColorValues);
+		cv::imshow("Image", img);
+		if (cv::waitKey(1) == 27)
+		{
+			cv::destroyAllWindows();
+			break;
+		}
+	}
 }
 
-void qt::on_closeCamera_clicked()
+void qt::on_openMask_clicked()
 {
-	m_timer->stop();
-	m_videoCapture.release();
-	QApplication* app;	
-	app->exit(0);	
+	cv::Mat imgHSV, mask, imgColor;
+	int hmin = 24, smin = 95, vmin = 105;
+	int hmax = 80, smax = 245, vmax = 255;
+
+	m_videoCapture.open(0);
+	cv::namedWindow("Trackbars", (640, 200));
+	cv::createTrackbar("Hue Min", "Trackbars", &hmin, 179);
+	cv::createTrackbar("Hue Max", "Trackbars", &hmax, 179);
+	cv::createTrackbar("Sat Min", "Trackbars", &smin, 255);
+	cv::createTrackbar("Sat Max", "Trackbars", &smax, 255);
+	cv::createTrackbar("Val Min", "Trackbars", &vmin, 255);
+	cv::createTrackbar("Val Max", "Trackbars", &vmax, 255);
+
+	while (true)
+	{
+		m_videoCapture >> img;
+
+		cvtColor(img, imgHSV, cv::COLOR_BGR2HSV);
+
+		cv::Scalar lower(hmin, smin, vmin);
+		cv::Scalar upper(hmax, smax, vmax);
+
+		inRange(imgHSV, lower, upper, mask);
+		cout << hmin << "," << smin << "," << vmin << "," << hmax << "," << smax << "," << vmax << endl;
+		imshow("Image", img);
+		imshow("Mask", mask);
+
+		if (cv::waitKey(1) == 27)
+		{
+			cv::destroyAllWindows();
+			break;
+		}
+	}
+
+
 }
 
-QImage qt::MatImageToQt(const cv::Mat& src)
+QImage	 qt::MatImageToQt(const cv::Mat& src)
 {
 	//CV_8UC1 8位无符号的单通道---灰度图片
 	if (src.type() == CV_8UC1)
@@ -321,7 +436,7 @@ QImage qt::MatImageToQt(const cv::Mat& src)
 		//使用给定的大小和格式构造图像
 		//QImage(int width, int height, Format format)
 		QImage qImage(src.cols, src.rows, QImage::Format_Indexed8);
-		//扩展颜色表的颜色数目
+		//扩展颜色表的颜色数目					
 		qImage.setColorCount(256);
 
 		//在给定的索引设置颜色
@@ -368,3 +483,4 @@ QImage qt::MatImageToQt(const cv::Mat& src)
 		return QImage();
 	}
 }
+
